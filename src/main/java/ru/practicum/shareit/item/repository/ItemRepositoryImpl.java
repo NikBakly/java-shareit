@@ -61,15 +61,16 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public Item findItemByItemId(Long userId, Long itemId) {
-        Optional<Item> foundItem = items.get(userId).stream()
+    public Item findItemByItemId(Long itemId) {
+
+        Optional<Item> foundItem = getAllItems().stream()
                 .filter(item -> item.getId().equals(itemId))
                 .findFirst();
         if (foundItem.isEmpty()) {
             log.warn("Вещь id = {} не найдена", itemId);
             throw new NotFoundException("Вещь id = " + itemId + " не найдена");
         }
-        log.info("Вещь id = {} успешно найдена у пользователя id = {}", itemId, userId);
+        log.info("Вещь id = {} успешно найдена", itemId);
         return foundItem.get();
     }
 
