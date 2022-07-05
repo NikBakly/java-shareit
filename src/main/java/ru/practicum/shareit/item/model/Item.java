@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.model;
 import lombok.Builder;
 import lombok.Data;
 import ru.practicum.shareit.requests.model.ItemRequest;
-import ru.practicum.shareit.user.model.User;
 
 /**
  * POJO класс, описывающий поля объекта "товар"
