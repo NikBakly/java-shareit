@@ -1,11 +1,11 @@
-package ru.practicum.shareit.user.repository;
+package ru.practicum.shareit.user.service;
 
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
-public interface UserRepository {
+public interface UserService {
     User save(UserDto userDto);
 
     User update(Long userId, UserDto userDto);

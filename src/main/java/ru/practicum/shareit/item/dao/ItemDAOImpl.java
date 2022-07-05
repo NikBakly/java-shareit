@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item.repository;
+package ru.practicum.shareit.item.dao;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +9,7 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.user.dao.UserDAO;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class ItemRepositoryImpl implements ItemRepository {
+public class ItemDAOImpl implements ItemDAO {
     private final Map<Long, List<Item>> items = new HashMap<>(); // словарь:userId-items
-    private final UserRepository userRepository;
+    private final UserDAO userDAO;
 
     private Long nextItemId = 1L;
 
@@ -61,15 +61,15 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public Item findItemByItemId(Long userId, Long itemId) {
-        Optional<Item> foundItem = items.get(userId).stream()
+    public Item findItemByItemId(Long itemId) {
+        Optional<Item> foundItem = getAllItems().stream()
                 .filter(item -> item.getId().equals(itemId))
                 .findFirst();
         if (foundItem.isEmpty()) {
             log.warn("Вещь id = {} не найдена", itemId);
             throw new NotFoundException("Вещь id = " + itemId + " не найдена");
         }
-        log.info("Вещь id = {} успешно найдена у пользователя id = {}", itemId, userId);
+        log.info("Вещь id = {} успешно найдена", itemId);
         return foundItem.get();
     }
 
@@ -89,7 +89,7 @@ public class ItemRepositoryImpl implements ItemRepository {
             foundItems = getAllItems().stream()
                     .filter(item -> item.getAvailable().equals(Boolean.TRUE)
                             && (item.getName().toLowerCase().contains(regex)
-                                || item.getDescription().toLowerCase().contains(regex)))
+                            || item.getDescription().toLowerCase().contains(regex)))
                     .collect(Collectors.toList());
 
             log.info("Все вещи успешно найдены по text = {} для пользователя id = {}", text, userId);
@@ -126,7 +126,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     private void checkUserById(Long userId) {
-        if (userRepository.findUserById(userId) == null) {
+        if (userDAO.findUserById(userId) == null) {
             log.warn("Пользователь с id = {} не найден", userId);
             throw new NotFoundException("Пользователь с id = " + userId + " не найден");
         }

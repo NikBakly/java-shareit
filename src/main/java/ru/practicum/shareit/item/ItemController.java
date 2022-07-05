@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
 
@@ -15,35 +15,34 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/items")
 public class ItemController {
-    private final ItemRepository itemRepository;
+    private final ItemService itemService;
 
     @PostMapping
     public Item createNewItem(@RequestBody ItemDto itemDto,
                               @RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemRepository.save(itemDto, userId);
+        return itemService.save(itemDto, userId);
     }
 
     @PatchMapping("/{id}")
     public Item updateItem(@RequestBody ItemDto itemDto,
                            @RequestHeader("X-Sharer-User-Id") Long userId,
                            @PathVariable("id") Long itemId) {
-        return itemRepository.update(itemDto, userId, itemId);
+        return itemService.update(itemDto, userId, itemId);
     }
 
     @GetMapping()
     public List<Item> getAllItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemRepository.getAllItemsByUserId(userId);
+        return itemService.getAllItemsByUserId(userId);
     }
 
     @GetMapping("/{itemId}")
-    public Item findItemByItemId(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                 @PathVariable("itemId") Long itemId) {
-        return itemRepository.findItemByItemId(userId, itemId);
+    public Item findItemByItemId(@PathVariable("itemId") Long itemId) {
+        return itemService.findItemByItemId(itemId);
     }
 
     @GetMapping("/search")
     public List<Item> findItemByText(@RequestHeader("X-Sharer-User-Id") Long userId,
                                      @RequestParam(name = "text") String text) {
-        return itemRepository.findItemByText(userId, text);
+        return itemService.findItemByText(userId, text);
     }
 }

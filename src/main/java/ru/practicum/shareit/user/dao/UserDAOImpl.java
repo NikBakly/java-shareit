@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user.repository;
+package ru.practicum.shareit.user.dao;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Repository
 @Slf4j
-public class UserRepositoryImpl implements UserRepository {
+public class UserDAOImpl implements UserDAO {
     private final HashMap<Long, User> users = new HashMap<>(); // словарь:userId-user
     private Long nextId = 1L;
 
@@ -26,7 +26,7 @@ public class UserRepositoryImpl implements UserRepository {
         validate(user);
         user.setId(nextId++);
         users.put(user.getId(), user);
-        log.info("Пользователь под id = {} успешно сохранен.", user.getId());
+        log.debug("Пользователь под id = {} успешно сохранен.", user.getId());
         return user;
     }
 
@@ -40,27 +40,27 @@ public class UserRepositoryImpl implements UserRepository {
         if (userDto.getEmail() != null) {
             user.setEmail(userDto.getEmail());
         }
-        log.info("Пользователь под id = {} успешно обновлен.", user.getId());
+        log.debug("Пользователь под id = {} успешно обновлен.", user.getId());
         return user;
     }
 
     @Override
     public User findUserById(Long userId) {
         checkUserId(userId);
-        log.info("Пользователь под id = {} успешно найден.", userId);
+        log.debug("Пользователь под id = {} успешно найден.", userId);
         return users.get(userId);
     }
 
     @Override
     public void deleteUserById(Long userId) {
         checkUserId(userId);
-        log.info("Пользователь под id = {} успешно удален.", userId);
+        log.debug("Пользователь под id = {} успешно удален.", userId);
         users.remove(userId);
     }
 
     @Override
     public List<User> getAllUsers() {
-        log.info("Все пользователи успешно найдены");
+        log.debug("Все пользователи успешно найдены");
         return new ArrayList<>(users.values());
     }
 
