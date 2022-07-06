@@ -6,9 +6,9 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserDAO;
 
 import java.util.*;
@@ -24,7 +24,7 @@ public class ItemDAOImpl implements ItemDAO {
     private Long nextItemId = 1L;
 
     @Override
-    public Item save(ItemDto itemDto, Long userId) {
+    public ItemDto save(ItemDto itemDto, Long userId) {
         validateForSaveItem(itemDto, userId);
         Item item = ItemMapper.toItem(itemDto);
         item.setId(nextItemId++);
@@ -37,11 +37,11 @@ public class ItemDAOImpl implements ItemDAO {
             return userItems;
         });
         log.info("Вещь id = {} успешно сохранена у пользователя id = {}", item.getId(), userId);
-        return item;
+        return ItemMapper.itemDto(item);
     }
 
     @Override
-    public Item update(ItemDto itemDto, Long userId, Long itemId) {
+    public ItemDto update(ItemDto itemDto, Long userId, Long itemId) {
         validateForUpdateItem(userId, itemId);
         Item item = items.get(userId).stream()
                 .filter(item1 -> item1.getId().equals(itemId))
@@ -57,36 +57,39 @@ public class ItemDAOImpl implements ItemDAO {
             item.setAvailable(itemDto.getAvailable());
         }
         log.info("Вещь id = {} успешно обновлена у пользователя id = {}", itemId, userId);
-        return item;
+        return ItemMapper.itemDto(item);
     }
 
     @Override
-    public Item findItemByItemId(Long itemId) {
-        Optional<Item> foundItem = getAllItems().stream()
+    public ItemDto findItemByItemId(Long userId, Long itemId) {
+        checkUserById(userId);
+        Optional<ItemDto> foundItemDto = getAllItemsDto().stream()
                 .filter(item -> item.getId().equals(itemId))
                 .findFirst();
-        if (foundItem.isEmpty()) {
+        if (foundItemDto.isEmpty()) {
             log.warn("Вещь id = {} не найдена", itemId);
             throw new NotFoundException("Вещь id = " + itemId + " не найдена");
         }
         log.info("Вещь id = {} успешно найдена", itemId);
-        return foundItem.get();
+        return foundItemDto.get();
     }
 
     @Override
-    public List<Item> getAllItemsByUserId(Long userId) {
+    public List<ItemDto> getAllItemsByUserId(Long userId) {
         checkUserById(userId);
         log.info("Все вещи успешно найдены у пользователя id = {}", userId);
-        return new ArrayList<>(items.get(userId));
+        ArrayList<ItemDto> result = new ArrayList<>();
+        items.get(userId).forEach(item -> result.add(ItemMapper.itemDto(item)));
+        return result;
     }
 
     @Override
-    public List<Item> findItemByText(Long userId, String text) {
-        List<Item> foundItems = new ArrayList<>();
+    public List<ItemDto> findItemByText(Long userId, String text) {
+        List<ItemDto> foundItems = new ArrayList<>();
         if (!text.isBlank()) {
             String regex = text.toLowerCase();
             //поиск по названию
-            foundItems = getAllItems().stream()
+            foundItems = getAllItemsDto().stream()
                     .filter(item -> item.getAvailable().equals(Boolean.TRUE)
                             && (item.getName().toLowerCase().contains(regex)
                             || item.getDescription().toLowerCase().contains(regex)))
@@ -132,9 +135,11 @@ public class ItemDAOImpl implements ItemDAO {
         }
     }
 
-    private List<Item> getAllItems() {
-        List<Item> allItems = new ArrayList<>();
-        items.values().forEach(allItems::addAll);
-        return allItems;
+    private List<ItemDto> getAllItemsDto() {
+        List<ItemDto> allItemsDto = new ArrayList<>();
+        items.values()
+                .forEach(items1 -> items1
+                        .forEach(item -> allItemsDto.add(ItemMapper.itemDto(item))));
+        return allItemsDto;
     }
 }

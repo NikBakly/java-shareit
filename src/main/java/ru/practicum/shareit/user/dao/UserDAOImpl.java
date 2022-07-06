@@ -5,8 +5,6 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
 import javax.validation.Valid;
@@ -21,8 +19,7 @@ public class UserDAOImpl implements UserDAO {
     private Long nextId = 1L;
 
     @Override
-    public User save(UserDto userDto) {
-        User user = UserMapper.toUser(userDto);
+    public User save(User user) {
         validate(user);
         user.setId(nextId++);
         users.put(user.getId(), user);
@@ -31,16 +28,16 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public User update(Long userId, UserDto userDto) {
-        validateForUpdateUser(userId, userDto);
+    public User update(Long userId, User UpdatedUser) {
+        validateForUpdateUser(userId, UpdatedUser);
         User user = users.get(userId);
-        if (userDto.getName() != null) {
-            user.setName(userDto.getName());
+        if (UpdatedUser.getName() != null) {
+            user.setName(UpdatedUser.getName());
         }
-        if (userDto.getEmail() != null) {
-            user.setEmail(userDto.getEmail());
+        if (UpdatedUser.getEmail() != null) {
+            user.setEmail(UpdatedUser.getEmail());
         }
-        log.debug("Пользователь под id = {} успешно обновлен.", user.getId());
+        log.debug("Пользователь под id = {} успешно обновлен.", userId);
         return user;
     }
 
@@ -80,10 +77,10 @@ public class UserDAOImpl implements UserDAO {
         checkEmailUser(user.getEmail());
     }
 
-    private void validateForUpdateUser(Long userId, UserDto userDto) {
+    private void validateForUpdateUser(Long userId, User user) {
         checkUserId(userId);
-        if (userDto.getEmail() != null) {
-            checkEmailUser(userDto.getEmail());
+        if (user.getEmail() != null) {
+            checkEmailUser(user.getEmail());
         }
     }
 
