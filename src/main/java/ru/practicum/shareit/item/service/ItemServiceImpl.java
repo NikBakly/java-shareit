@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.dao.ItemDAO;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.Item;
 
 import java.util.List;
 

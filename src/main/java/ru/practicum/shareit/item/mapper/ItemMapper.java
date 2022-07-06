@@ -1,8 +1,8 @@
 package ru.practicum.shareit.item.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.Item;
+import ru.practicum.shareit.item.dto.ItemDto;
 
 /**
  * Класс, который работает с преобразованиями ItemDto
