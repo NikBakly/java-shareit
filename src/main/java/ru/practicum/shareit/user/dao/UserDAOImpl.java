@@ -28,14 +28,14 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public User update(Long userId, User UpdatedUser) {
-        validateForUpdateUser(userId, UpdatedUser);
+    public User update(Long userId, User updatedUser) {
+        validateForUpdateUser(userId, updatedUser);
         User user = users.get(userId);
-        if (UpdatedUser.getName() != null) {
-            user.setName(UpdatedUser.getName());
+        if (updatedUser.getName() != null) {
+            user.setName(updatedUser.getName());
         }
-        if (UpdatedUser.getEmail() != null) {
-            user.setEmail(UpdatedUser.getEmail());
+        if (updatedUser.getEmail() != null) {
+            user.setEmail(updatedUser.getEmail());
         }
         log.debug("Пользователь под id = {} успешно обновлен.", userId);
         return user;
