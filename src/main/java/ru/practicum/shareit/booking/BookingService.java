@@ -1,6 +1,6 @@
 package ru.practicum.shareit.booking;
 
-import ru.practicum.shareit.State.State;
+import ru.practicum.shareit.booking.state.State;
 
 import java.util.List;
 

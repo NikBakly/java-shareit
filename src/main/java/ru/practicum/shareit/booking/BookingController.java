@@ -2,7 +2,7 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.State.State;
+import ru.practicum.shareit.booking.state.State;
 
 import java.util.List;
 

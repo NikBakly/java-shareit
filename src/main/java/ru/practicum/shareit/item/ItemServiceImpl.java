@@ -120,9 +120,9 @@ public class ItemServiceImpl implements ItemService {
     // Метод для обработки и возврата инициализированного класса ItemFoundDto
     private ItemFoundDto getItemFoundDto(Item foundItem, Long userId) {
         // Найдем две ближайшие аренды
-        List<Booking> bookings = bookingRepository.findTwoBookingByOwnerIdOrderByEndAsc(userId);
+        List<Booking> bookings = bookingRepository.findTwoBookingByOwnerIdOrderByEndAsc(userId, foundItem.getId());
         // если получено две аренды: предыдущая и следующая.
-        if (bookings.size() == 2) {
+        if (bookings.size() >= 2) {
             return ItemMapper.toItemFoundDto(foundItem,
                     new ItemFoundDto.LastBooking(bookings.get(0)),
                     new ItemFoundDto.NextBooking(bookings.get(1)));
@@ -148,7 +148,7 @@ public class ItemServiceImpl implements ItemService {
 
     private ItemFoundDto getItemFoundDto(Item foundItem, Long userId, List<CommentDto> commentsDto) {
         // Найдем две ближайшие аренды
-        List<Booking> bookings = bookingRepository.findTwoBookingByOwnerIdOrderByEndAsc(userId);
+        List<Booking> bookings = bookingRepository.findTwoBookingByOwnerIdOrderByEndAsc(userId, foundItem.getId());
         // если получено две аренды: предыдущая и следующая.
         if (bookings.size() == 2) {
             return ItemMapper.toItemFoundDto(foundItem,

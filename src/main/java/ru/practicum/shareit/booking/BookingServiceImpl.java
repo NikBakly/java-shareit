@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.State.State;
+import ru.practicum.shareit.booking.state.State;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.Item;
@@ -79,22 +79,45 @@ public class BookingServiceImpl implements BookingService {
         if (state == null) {
             state = State.ALL;
         }
-        List<Booking> bookings;
-        //Другие состояния находятся в разработке
+        List<Booking> resultBookings = new ArrayList<>();
+        List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId);
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId);
+                resultBookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId);
                 break;
             case WAITING:
-                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.WAITING);
+                resultBookings = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.WAITING);
                 break;
             case REJECTED:
-                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED);
+                resultBookings = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED);
+                break;
+            case PAST:
+                for (Booking booking : bookings) {
+                    if (booking.getEnd().isBefore(LocalDateTime.now())) {
+                        resultBookings.add(booking);
+                    }
+                }
+                break;
+            case CURRENT:
+                for (Booking booking : bookings) {
+                    if (booking.getStart().isBefore(LocalDateTime.now())
+                            && booking.getEnd().isAfter(LocalDateTime.now())) {
+                        resultBookings.add(booking);
+                    }
+                }
+                break;
+            case FUTURE:
+                for (Booking booking : bookings) {
+                    if (booking.getEnd().isAfter(LocalDateTime.now())) {
+                        resultBookings.add(booking);
+                    }
+                }
                 break;
             default:
-                bookings = new ArrayList<>();
+                log.warn("Unknown state: {}", state);
+                throw new BadRequestException("Unknown state: " + state);
         }
-        return getBookingsDto(bookings);
+        return getBookingsDto(resultBookings);
     }
 
     @Transactional(readOnly = true)
@@ -104,22 +127,45 @@ public class BookingServiceImpl implements BookingService {
         if (state == null) {
             state = State.ALL;
         }
-        List<Booking> bookings;
-        //Другие состояния находятся в разработке
+        List<Booking> resultBookings = new ArrayList<>();
+        List<Booking> bookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId);
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId);
+                resultBookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId);
                 break;
             case WAITING:
-                bookings = bookingRepository.findAllByOwnerIdAndStatusOrderByEndAsc(userId, Status.WAITING);
+                resultBookings = bookingRepository.findAllByOwnerIdAndStatusOrderByEndDesc(userId, Status.WAITING);
                 break;
             case REJECTED:
-                bookings = bookingRepository.findAllByOwnerIdAndStatusOrderByEndAsc(userId, Status.REJECTED);
+                resultBookings = bookingRepository.findAllByOwnerIdAndStatusOrderByEndDesc(userId, Status.REJECTED);
+                break;
+            case PAST:
+                for (Booking booking : bookings) {
+                    if (booking.getEnd().isBefore(LocalDateTime.now())) {
+                        resultBookings.add(booking);
+                    }
+                }
+                break;
+            case CURRENT:
+                for (Booking booking : bookings) {
+                    if (booking.getStart().isBefore(LocalDateTime.now())
+                            && booking.getEnd().isAfter(LocalDateTime.now())) {
+                        resultBookings.add(booking);
+                    }
+                }
+                break;
+            case FUTURE:
+                for (Booking booking : bookings) {
+                    if (booking.getEnd().isAfter(LocalDateTime.now())) {
+                        resultBookings.add(booking);
+                    }
+                }
                 break;
             default:
-                bookings = new ArrayList<>();
+                log.warn("Unknown state: {}", state);
+                throw new BadRequestException("Unknown state: " + state);
         }
-        return getBookingsDto(bookings);
+        return getBookingsDto(resultBookings);
     }
 
     // метод возвращаюсь список из преобразованных классов
