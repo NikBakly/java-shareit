@@ -38,11 +38,11 @@ CREATE TABLE IF NOT EXISTS bookings
     end_date_time   TIMESTAMP WITHOUT TIME ZONE             NOT NULL,
     item_id         BIGINT,
     booker_id       BIGINT,
-    approved        BOOLEAN                                 NOT NULL,
-    canceled        BOOLEAN                                 NOT NULL,
+    status          varchar(10),
     CONSTRAINT pk_booking PRIMARY KEY (id),
     CONSTRAINT FK_BOOKING_ON_BOOKER FOREIGN KEY (booker_id) REFERENCES users (id),
-    CONSTRAINT FK_BOOKING_ON_ITEM FOREIGN KEY (item_id) REFERENCES items (id)
+    CONSTRAINT FK_BOOKING_ON_ITEM FOREIGN KEY (item_id) REFERENCES items (id),
+    CHECK status = 'WAITING' OR status = 'APPROVED' OR status = 'REJECTED' OR status = 'CANCELED'
 );
 
 CREATE TABLE IF NOT EXISTS comments

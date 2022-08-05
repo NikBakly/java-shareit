@@ -1,8 +1,8 @@
-package ru.practicum.shareit.requests.dto;
+package ru.practicum.shareit.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.User;
 
 import java.time.LocalDate;
 
