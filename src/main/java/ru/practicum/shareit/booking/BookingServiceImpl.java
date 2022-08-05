@@ -44,31 +44,32 @@ public class BookingServiceImpl implements BookingService {
         validateForSetStatus(userId, bookingId, approved);
         Booking booking = bookingRepository.findById(bookingId).get();
 
-        //назначение статического класса для BookingDto класса
-        BookingDto.itemInitialization = new BookingDto.Item(booking.getItemId(),
-                itemRepository.findById(booking.getItemId()).get().getName());
-        BookingDto.bookerInitialization = new BookingDto.Booker(booking.getBookerId());
-
         //Изменение сущности бронирования с учетом подтверждения владельцем вещи для аренды
         if (approved.equals(Boolean.TRUE)) {
             //Изменение статуса у бронирования и сохранение в БД
             booking.setStatus(Status.APPROVED);
             bookingRepository.save(booking);
             log.info("Бронь id = {} успешно подтверждена владельцем id = {}", bookingId, userId);
-            return BookingMapper.toBookingDto(booking);
         } else {
             booking.setStatus(Status.REJECTED);
             bookingRepository.save(booking);
             log.info("Бронь id = {} успешно отклонена владельцем id = {}", bookingId, userId);
-            return BookingMapper.toBookingDto(booking);
         }
+        return BookingMapper.toBookingDto(booking,
+                new BookingDto.Item(booking.getItemId(),
+                        itemRepository.findById(booking.getItemId()).get().getName()),
+                new BookingDto.Booker(booking.getBookerId()));
     }
 
     @Transactional(readOnly = true)
     @Override
     public BookingDto findById(Long userId, Long bookingId) {
         checkBookerAndOwner(userId, bookingId);
-        return BookingMapper.toBookingDto(bookingRepository.findById(bookingId).get());
+        Booking booking = bookingRepository.findById(bookingId).get();
+        return BookingMapper.toBookingDto(booking,
+                new BookingDto.Item(booking.getItemId(),
+                        itemRepository.findById(booking.getItemId()).get().getName()),
+                new BookingDto.Booker(booking.getBookerId()));
     }
 
     @Transactional(readOnly = true)
@@ -93,8 +94,7 @@ public class BookingServiceImpl implements BookingService {
             default:
                 bookings = new ArrayList<>();
         }
-
-        return BookingMapper.toBookingsDtoWithItemAndBooker(bookings);
+        return getBookingsDto(bookings);
     }
 
     @Transactional(readOnly = true)
@@ -119,8 +119,16 @@ public class BookingServiceImpl implements BookingService {
             default:
                 bookings = new ArrayList<>();
         }
+        return getBookingsDto(bookings);
+    }
 
-        return BookingMapper.toBookingsDtoWithItemAndBooker(bookings);
+    // метод возвращаюсь список из преобразованных классов
+    private List<BookingDto> getBookingsDto(List<Booking> bookings) {
+        List<BookingDto> bookingsDto = new ArrayList<>();
+        bookings.forEach(booking -> bookingsDto.add(BookingMapper.toBookingDto(booking,
+                new BookingDto.Item(booking.getItemId(), itemRepository.findById(booking.getItemId()).get().getName()),
+                new BookingDto.Booker(booking.getBookerId()))));
+        return bookingsDto;
     }
 
     // метод для проверки возможности создания бронирования

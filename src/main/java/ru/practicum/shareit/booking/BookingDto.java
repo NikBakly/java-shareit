@@ -16,11 +16,8 @@ public class BookingDto {
     private LocalDateTime start;
     private LocalDateTime end;
     private Status status;
-    private Item item = itemInitialization;
-    private Booker booker = bookerInitialization;
-
-    public static Item itemInitialization;
-    public static Booker bookerInitialization;
+    private Item item;
+    private Booker booker;
 
     public static class Item {
         public Long id;
