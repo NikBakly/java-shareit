@@ -6,7 +6,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 /**
- * Класс, который предназначил для работы с пользователем
+ * Класс, который предназначил для работы с пользователем при создании Booking
  */
 @Getter
 @Setter

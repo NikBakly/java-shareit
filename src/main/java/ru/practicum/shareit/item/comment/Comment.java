@@ -7,6 +7,7 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -28,4 +29,21 @@ public class Comment {
 
     @Builder.Default
     private LocalDateTime created = LocalDateTime.now();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Comment comment = (Comment) o;
+        return Objects.equals(id, comment.id)
+                && Objects.equals(text, comment.text)
+                && Objects.equals(itemId, comment.itemId)
+                && Objects.equals(userId, comment.userId)
+                && Objects.equals(created, comment.created);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, text, itemId, userId, created);
+    }
 }

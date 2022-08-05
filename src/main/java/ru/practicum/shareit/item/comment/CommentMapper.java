@@ -19,10 +19,4 @@ public class CommentMapper {
         commentDto.setCreated(comment.getCreated());
         return commentDto;
     }
-
-    public static List<CommentDto> toCommentsDto(List<Comment> comment, String authorName) {
-        List<CommentDto> commentsDto = new ArrayList<>();
-        comment.forEach(comment1 -> commentsDto.add(toCommentDto(comment1, authorName)));
-        return commentsDto;
-    }
 }

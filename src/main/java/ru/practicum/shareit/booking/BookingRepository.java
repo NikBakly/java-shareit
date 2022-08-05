@@ -32,8 +32,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             nativeQuery = true)
     List<Booking> findTwoBookingByOwnerIdOrderByEndAsc(@Param("ownerId") Long ownerId, @Param("itemId") Long itemId);
 
-
     List<Booking> findByBookerIdAndItemId(Long bookerId, Long itemId);
 
-    List<Booking> findAllByItemId(Long itemId);
 }
