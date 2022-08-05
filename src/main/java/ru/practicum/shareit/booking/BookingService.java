@@ -7,7 +7,7 @@ import java.util.List;
 public interface BookingService {
 
     // Метод для создания бронирования по запросу пользователя
-    BookingCreateDto create(BookingCreateDto BookingCreateDto, Long userId);
+    BookingCreateDto create(BookingCreateDto bookingCreateDto, Long userId);
 
     // Метод для назначения статуса для бронирования
     BookingDto setStatus(Long userId, Long bookingId, Boolean approved);

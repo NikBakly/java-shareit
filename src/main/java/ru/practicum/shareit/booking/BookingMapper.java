@@ -7,12 +7,12 @@ package ru.practicum.shareit.booking;
 public class BookingMapper {
 
     public static BookingCreateDto toBookingCreateDto(Booking booking) {
-        BookingCreateDto BookingCreateDto = new BookingCreateDto();
-        BookingCreateDto.setId(booking.getId());
-        BookingCreateDto.setItemId(booking.getItemId());
-        BookingCreateDto.setStart(booking.getStart());
-        BookingCreateDto.setEnd(booking.getEnd());
-        return BookingCreateDto;
+        BookingCreateDto bookingCreateDto = new BookingCreateDto();
+        bookingCreateDto.setId(booking.getId());
+        bookingCreateDto.setItemId(booking.getItemId());
+        bookingCreateDto.setStart(booking.getStart());
+        bookingCreateDto.setEnd(booking.getEnd());
+        return bookingCreateDto;
     }
 
     public static BookingDto toBookingDto(Booking booking, BookingDto.Item item, BookingDto.Booker booker) {
@@ -26,11 +26,11 @@ public class BookingMapper {
         return bookingDto;
     }
 
-    public static Booking toBooking(BookingCreateDto BookingCreateDto, Long userId) {
+    public static Booking toBooking(BookingCreateDto bookingCreateDto, Long userId) {
         Booking booking = new Booking();
-        booking.setStart(BookingCreateDto.getStart());
-        booking.setEnd(BookingCreateDto.getEnd());
-        booking.setItemId(BookingCreateDto.getItemId());
+        booking.setStart(bookingCreateDto.getStart());
+        booking.setEnd(bookingCreateDto.getEnd());
+        booking.setItemId(bookingCreateDto.getItemId());
         booking.setBookerId(userId);
         return booking;
     }
