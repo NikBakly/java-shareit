@@ -30,12 +30,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional
     @Override
-    public BookingDtoForCreate create(BookingDtoForCreate bookingDtoForCreate, Long userId) {
-        validateForCreate(bookingDtoForCreate, userId);
-        Booking booking = BookingMapper.toBooking(bookingDtoForCreate, userId);
+    public BookingCreateDto create(BookingCreateDto BookingCreateDto, Long userId) {
+        validateForCreate(BookingCreateDto, userId);
+        Booking booking = BookingMapper.toBooking(BookingCreateDto, userId);
         bookingRepository.save(booking);
         log.info("Бронь id = {} успешно запрошена пользователем id = {}", booking.getId(), userId);
-        return BookingMapper.toBookingDtoForCreate(booking);
+        return BookingMapper.toBookingCreateDto(booking);
     }
 
     @Transactional
@@ -132,31 +132,31 @@ public class BookingServiceImpl implements BookingService {
     }
 
     // метод для проверки возможности создания бронирования
-    private void validateForCreate(BookingDtoForCreate bookingDtoForCreate, Long userId) {
+    private void validateForCreate(BookingCreateDto BookingCreateDto, Long userId) {
         checkUserById(userId);
-        checkItemById(bookingDtoForCreate.getItemId());
+        checkItemById(BookingCreateDto.getItemId());
 
         //проверка на доступность предмета для аренды
-        if (itemRepository.findById(bookingDtoForCreate.getItemId()).get().getAvailable().equals(Boolean.FALSE)) {
+        if (itemRepository.findById(BookingCreateDto.getItemId()).get().getAvailable().equals(Boolean.FALSE)) {
             log.warn("Этот предмет не доступен для аренды");
             throw new BadRequestException("Этот предмет не доступен для аренды");
         }
 
         //проверка на адекватность срока бронирования
-        if (bookingDtoForCreate.getEnd().isBefore(bookingDtoForCreate.getStart())
-                || bookingDtoForCreate.getStart().isBefore(LocalDateTime.now())
-                || bookingDtoForCreate.getEnd().isBefore(LocalDateTime.now())) {
+        if (BookingCreateDto.getEnd().isBefore(BookingCreateDto.getStart())
+                || BookingCreateDto.getStart().isBefore(LocalDateTime.now())
+                || BookingCreateDto.getEnd().isBefore(LocalDateTime.now())) {
             log.warn("Продолжительность аренды не верно указано");
             throw new BadRequestException("Продолжительность аренды не верно указано");
         }
 
 
-        Optional<Item> item = itemRepository.findById(bookingDtoForCreate.getItemId());
+        Optional<Item> item = itemRepository.findById(BookingCreateDto.getItemId());
         //проверка на возможность бронирования владельца собственного предмета
         if (item.get().getOwnerId().equals(userId)) {
-            log.warn("Пользователь id = {} является владельцем предмета id = {}", userId, bookingDtoForCreate.getItemId());
+            log.warn("Пользователь id = {} является владельцем предмета id = {}", userId, BookingCreateDto.getItemId());
             throw new NotFoundException("Пользователь id = "
-                    + userId + " является владельцем предмета id = " + bookingDtoForCreate.getItemId());
+                    + userId + " является владельцем предмета id = " + BookingCreateDto.getItemId());
         }
     }
 

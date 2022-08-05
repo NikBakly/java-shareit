@@ -1,21 +1,18 @@
 package ru.practicum.shareit.booking;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Класс, который преобразовывает объект Item в DTO-объекты
  */
 public class BookingMapper {
 
-    public static BookingDtoForCreate toBookingDtoForCreate(Booking booking) {
-        BookingDtoForCreate bookingDtoForCreate = new BookingDtoForCreate();
-        bookingDtoForCreate.setId(booking.getId());
-        bookingDtoForCreate.setItemId(booking.getItemId());
-        bookingDtoForCreate.setStart(booking.getStart());
-        bookingDtoForCreate.setEnd(booking.getEnd());
-        return bookingDtoForCreate;
+    public static BookingCreateDto toBookingCreateDto(Booking booking) {
+        BookingCreateDto BookingCreateDto = new BookingCreateDto();
+        BookingCreateDto.setId(booking.getId());
+        BookingCreateDto.setItemId(booking.getItemId());
+        BookingCreateDto.setStart(booking.getStart());
+        BookingCreateDto.setEnd(booking.getEnd());
+        return BookingCreateDto;
     }
 
     public static BookingDto toBookingDto(Booking booking, BookingDto.Item item, BookingDto.Booker booker) {
@@ -29,11 +26,11 @@ public class BookingMapper {
         return bookingDto;
     }
 
-    public static Booking toBooking(BookingDtoForCreate bookingDtoForCreate, Long userId) {
+    public static Booking toBooking(BookingCreateDto BookingCreateDto, Long userId) {
         Booking booking = new Booking();
-        booking.setStart(bookingDtoForCreate.getStart());
-        booking.setEnd(bookingDtoForCreate.getEnd());
-        booking.setItemId(bookingDtoForCreate.getItemId());
+        booking.setStart(BookingCreateDto.getStart());
+        booking.setEnd(BookingCreateDto.getEnd());
+        booking.setItemId(BookingCreateDto.getItemId());
         booking.setBookerId(userId);
         return booking;
     }

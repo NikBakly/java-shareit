@@ -16,9 +16,9 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public BookingDtoForCreate createNewBooking(@RequestBody BookingDtoForCreate bookingDtoForCreate,
-                                                @RequestHeader("X-Sharer-User-Id") Long userId) {
-        return bookingService.create(bookingDtoForCreate, userId);
+    public BookingCreateDto createNewBooking(@RequestBody BookingCreateDto BookingCreateDto,
+                                             @RequestHeader("X-Sharer-User-Id") Long userId) {
+        return bookingService.create(BookingCreateDto, userId);
     }
 
     @PatchMapping("/{bookingId}")
