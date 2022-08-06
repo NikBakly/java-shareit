@@ -1,12 +1,49 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.HeaderKey;
+import ru.practicum.shareit.booking.state.State;
+
+import java.util.List;
 
 /**
- * Класс находиться в разработке.
+ * Класс-контроллер, который предназначен для обработки запросов и возвращение результата.
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(path = "/bookings")
 public class BookingController {
+    private final BookingService bookingService;
+
+    @PostMapping
+    public BookingCreateDto createNewBooking(@RequestBody BookingCreateDto bookingCreateDto,
+                                             @RequestHeader(HeaderKey.USER_KEY) Long userId) {
+        return bookingService.create(bookingCreateDto, userId);
+    }
+
+    @PatchMapping("/{bookingId}")
+    public BookingDto setStatusBooking(@RequestHeader(HeaderKey.USER_KEY) Long userId,
+                                       @PathVariable("bookingId") Long bookingId,
+                                       @RequestParam(value = "approved", required = false) Boolean approved) {
+        return bookingService.setStatus(userId, bookingId, approved);
+    }
+
+    @GetMapping("/{bookingId}")
+    public BookingDto findById(@RequestHeader(HeaderKey.USER_KEY) Long userId,
+                               @PathVariable("bookingId") Long bookingId) {
+        return bookingService.findById(userId, bookingId);
+    }
+
+    @GetMapping()
+    public List<BookingDto> findAllForUser(@RequestHeader(HeaderKey.USER_KEY) Long userId,
+                                           @RequestParam(value = "state", required = false) State state) {
+        return bookingService.findAllForUser(userId, state);
+    }
+
+    @GetMapping("/owner")
+    public List<BookingDto> findAllForOwner(@RequestHeader(HeaderKey.USER_KEY) Long userId,
+                                            @RequestParam(value = "state", required = false) State state) {
+        return bookingService.findAllForOwner(userId, state);
+    }
 }
