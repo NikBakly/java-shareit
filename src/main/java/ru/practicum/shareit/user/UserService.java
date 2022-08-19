@@ -3,7 +3,7 @@ package ru.practicum.shareit.user;
 import java.util.List;
 
 public interface UserService {
-    User save(User userDto);
+    User save(User user);
 
     User update(Long userId, User updatedUser);
 

@@ -16,8 +16,8 @@ public interface BookingService {
     BookingDto findById(Long userId, Long bookingId);
 
     // Метод для поиска всей аренды для пользователя, который осуществляет бронирование
-    List<BookingDto> findAllForUser(Long userId, State state);
+    List<BookingDto> findAllForUser(Long userId, State state, Integer from, Integer size);
 
     // Метод для поиска всей аренды для пользователя, который является владельцем вещи
-    List<BookingDto> findAllForOwner(Long userId, State state);
+    List<BookingDto> findAllForOwner(Long userId, State state, Integer from, Integer size);
 }

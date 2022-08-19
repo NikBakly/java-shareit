@@ -5,7 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -26,7 +26,7 @@ public class ItemRequest {
     @Column(name = "requester_id")
     private Long requesterId;
 
-    private LocalDate created;
+    private LocalDateTime created;
 
     @Override
     public boolean equals(Object o) {
