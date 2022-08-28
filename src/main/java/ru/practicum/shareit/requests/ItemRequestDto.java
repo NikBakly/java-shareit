@@ -2,6 +2,7 @@ package ru.practicum.shareit.requests;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import ru.practicum.shareit.item.ItemDto;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.util.List;
  */
 @Data
 @Builder
+@ToString
 public class ItemRequestDto {
     private Long id;
     private String description;

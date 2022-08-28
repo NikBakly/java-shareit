@@ -1,6 +1,5 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.testServicesDefault;
 
-import org.aspectj.weaver.ast.Not;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,7 @@ import ru.practicum.shareit.user.UserServiceImpl;
 import java.util.List;
 import java.util.Optional;
 
-public class UserServiceImplTest {
+public class UserServiceTest {
     private final UserRepository mockUserRepository = Mockito.mock(UserRepository.class);
 
     private UserServiceImpl userService;

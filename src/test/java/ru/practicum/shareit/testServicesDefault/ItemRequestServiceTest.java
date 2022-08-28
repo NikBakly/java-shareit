@@ -1,4 +1,4 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.testServicesDefault;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 
-public class ItemRequestServiceImplTest {
+public class ItemRequestServiceTest {
     static private ItemRequest itemRequestForTest;
     static private Item itemForTest;
 
@@ -39,7 +39,6 @@ public class ItemRequestServiceImplTest {
         itemRequestService = new ItemRequestServiceImpl();
     }
 
-    //todo все занести в отдельные методы, чтобы было меньше повторений
     @BeforeAll
     static void initItemRequest() {
         itemRequestForTest = new ItemRequest();
@@ -94,7 +93,6 @@ public class ItemRequestServiceImplTest {
         itemRequestService.setUserRepository(mockUserRepository);
         // When
         BadRequestException thrown = Assertions.assertThrows(BadRequestException.class, () -> itemRequestService.create(itemRequestDtoForTest, 1L));
-
         // Then
         Assertions.assertEquals("Описание запроса должно быть определенно", thrown.getMessage());
     }
@@ -110,7 +108,6 @@ public class ItemRequestServiceImplTest {
         // When
         NotFoundException thrown = Assertions
                 .assertThrows(NotFoundException.class, () -> itemRequestService.create(itemRequestDtoForTest, 101L));
-
         // Then
         Assertions.assertEquals("Пользователь с id = 101 не найден", thrown.getMessage());
     }
@@ -246,6 +243,9 @@ public class ItemRequestServiceImplTest {
         Mockito
                 .when(mockItemRequestRepository.findAll(Mockito.any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(itemRequestForTest)));
+        Mockito
+                .when(mockItemRequestRepository.findAll())
+                .thenReturn(List.of(itemRequestForTest));
         Mockito
                 .when(mockItemRepository.findAllByRequestId(Mockito.anyLong()))
                 .thenReturn(List.of(itemForTest));

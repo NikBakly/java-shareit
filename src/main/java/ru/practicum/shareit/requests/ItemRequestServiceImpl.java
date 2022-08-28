@@ -56,6 +56,11 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                     itemRequestRepository.findAllByOrderByCreatedAsc());
         }
         checkValueFromAndSize(from, size);
+        //если пагинация выходит за список, то изменим ее размер
+        int sizeItemRequests = itemRequestRepository.findAll().size();
+        if (sizeItemRequests < from + size && sizeItemRequests > 0) {
+            size = sizeItemRequests - from;
+        }
         List<ItemRequest> itemRequests = itemRequestRepository
                 .findAll(PageRequest.of(from, size, Sort.by(Sort.Order.asc("created"))))
                 .getContent();
@@ -67,7 +72,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestDto findRequestById(Long requestId, Long userId) {
         checkUserById(userId);
-        //todo should test
         checkRequestById(requestId);
         log.info("Успешный вывод запроса по его id = {}", requestId);
         return getItemRequestDto(requestId);
@@ -115,7 +119,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private List<ItemRequestDto> getItemRequestDtoWhenGetAllRequests(Long userId, List<ItemRequest> itemRequests) {
         List<ItemRequestDto> itemRequestsDto = new ArrayList<>();
         itemRequests.forEach(itemRequest -> {
-            //todo протестировать
             if (!itemRequest.getRequesterId().equals(userId)) {
                 List<Item> items = itemRepository.findAllByRequestId(itemRequest.getId());
                 List<ItemDto> itemsDto = new ArrayList<>();

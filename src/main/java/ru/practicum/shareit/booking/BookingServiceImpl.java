@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking;
 
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,7 +85,7 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> resultBookings = new ArrayList<>();
 
         if (from == null || size == null) {
-            log.info("Один из параметров не определен, возвращаются все запросы");
+            log.info("Один из параметров не определен, возвращаются все аренды");
             List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId);
             switch (state) {
                 case ALL:
@@ -126,6 +125,11 @@ public class BookingServiceImpl implements BookingService {
             }
         } else {
             checkValueFromAndSize(from, size);
+            //если пагинация выходит за список, то изменим ее размер
+            int sizeBookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId).size();
+            if (sizeBookings < from + size) {
+                size = sizeBookings - from;
+            }
             Pageable pageable = PageRequest.of(from, size);
             List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId, pageable).getContent();
             switch (state) {
@@ -219,6 +223,11 @@ public class BookingServiceImpl implements BookingService {
             }
         } else {
             checkValueFromAndSize(from, size);
+            //если пагинация выходит за список, то изменим ее размер
+            int sizeBookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId).size();
+            if (sizeBookings < from + size && sizeBookings > 0) {
+                size = sizeBookings - from;
+            }
             Pageable pageable = PageRequest.of(from, size);
             List<Booking> bookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId, pageable).getContent();
             switch (state) {
@@ -366,8 +375,8 @@ public class BookingServiceImpl implements BookingService {
     private void checkBookingById(Long bookingId) {
         // проверка существование бронирование по id
         if (bookingRepository.findById(bookingId).isEmpty()) {
-            log.warn("Бронирование id = {} не найден", bookingId);
-            throw new NotFoundException("Бронирование id = " + bookingId + " не найден");
+            log.warn("Бронирование id = {} не найдено", bookingId);
+            throw new NotFoundException("Бронирование id = " + bookingId + " не найдено");
         }
     }
 

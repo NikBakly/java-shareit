@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item;
 
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +48,6 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public ItemDto update(ItemDto itemDto, Long userId, Long itemId) {
-        // todo should test
         validateWhenUpdateItem(userId, itemId);
         Item item = itemRepository.findById(itemId).get();
         if (itemDto.getName() != null)
@@ -66,9 +64,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     @Override
     public ItemFoundDto findByUserIdAndItemId(Long userId, Long itemId) {
-        //todo
         checkUserById(userId);
-        //todo
         checkItemById(itemId);
         Item foundItem = itemRepository.findById(itemId).get();
         log.info("Вещь id = {} успешно найдена", itemId);
@@ -99,6 +95,11 @@ public class ItemServiceImpl implements ItemService {
             items = itemRepository.findAllByOwnerId(userId);
         } else {
             checkValueFromAndSize(from, size);
+            //если пагинация выходит за список, то изменим ее размер
+            int sizeItems = itemRepository.findAllByOwnerId(userId).size();
+            if (sizeItems < from + size && sizeItems > 0) {
+                size = sizeItems - from;
+            }
             items = itemRepository.findAllByOwnerId(userId, PageRequest.of(from, size)).getContent();
         }
         List<ItemFoundDto> itemsDto = new ArrayList<>();
@@ -130,6 +131,11 @@ public class ItemServiceImpl implements ItemService {
             items = itemRepository.findItemsByText(text);
         } else {
             checkValueFromAndSize(from, size);
+            //если пагинация выходит за список, то изменим ее размер
+            int sizeItems = itemRepository.findItemsByText(text).size();
+            if (sizeItems < from + size && sizeItems > 0) {
+                size = sizeItems - from;
+            }
             items = itemRepository.findItemsByText(text, PageRequest.of(from, size)).getContent();
         }
         log.info("Все вещи успешно найдены по text = '{}' для пользователя id = {}", text, userId);

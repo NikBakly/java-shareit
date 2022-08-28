@@ -1,9 +1,10 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.testServicesDefault;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.data.domain.PageImpl;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public class ItemServiceImplTest {
+public class ItemServiceTest {
     private final ItemRepository mockItemRepository = Mockito.mock(ItemRepository.class);
     private final UserRepository mockUserRepository = Mockito.mock(UserRepository.class);
     private final CommentRepository mockCommentRepository = Mockito.mock(CommentRepository.class);
@@ -535,6 +536,36 @@ public class ItemServiceImplTest {
                 .assertThrows(NotFoundException.class, () -> itemService.findItemByText(99L, text, null, null));
         // Then
         Assertions.assertEquals("Пользователь с id = 99 не найден", thrown.getMessage());
+    }
+
+    @Test
+    void test23_findAllItemsByUserId() {
+        // Given
+        userForTest.setId(2L);
+        Mockito
+                .when(mockUserRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(userForTest));
+        Mockito
+                .when(mockItemRepository.findAllByOwnerId(Mockito.anyLong(), Mockito.any()))
+                .thenReturn(new PageImpl<>(List.of(itemForTest)));
+        Mockito
+                .when(mockItemRepository.findAllByOwnerId(Mockito.anyLong()))
+                .thenReturn(List.of(itemForTest));
+        Mockito
+                .when(mockBookingRepository.findTwoBookingByOwnerIdOrderByEndAsc(Mockito.anyLong(), Mockito.anyLong()))
+                .thenReturn(List.of());
+        itemService.setUserRepository(mockUserRepository);
+        itemService.setItemRepository(mockItemRepository);
+        itemService.setBookingRepository(mockBookingRepository);
+        // When
+        List<ItemFoundDto> itemsActual = itemService.findAllItemsByUserId(1L, 0, 1);
+        // Then
+        Assertions.assertEquals(1, itemsActual.size());
+        ItemFoundDto itemActual = itemsActual.get(0);
+        Assertions.assertEquals(itemForTest.getId(), itemActual.getId());
+        Assertions.assertEquals(itemForTest.getName(), itemActual.getName());
+        Assertions.assertEquals(itemForTest.getDescription(), itemActual.getDescription());
+
     }
 
 }
