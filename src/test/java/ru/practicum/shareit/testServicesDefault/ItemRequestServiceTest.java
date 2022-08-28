@@ -25,8 +25,8 @@ import java.util.Optional;
 
 
 public class ItemRequestServiceTest {
-    static private ItemRequest itemRequestForTest;
-    static private Item itemForTest;
+    static ItemRequest itemRequestForTest;
+    static Item itemForTest;
 
     private final UserRepository mockUserRepository = Mockito.mock(UserRepository.class);
     private final ItemRequestRepository mockItemRequestRepository = Mockito.mock(ItemRequestRepository.class);
