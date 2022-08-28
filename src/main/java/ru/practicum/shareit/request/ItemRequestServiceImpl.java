@@ -1,4 +1,4 @@
-package ru.practicum.shareit.requests;
+package ru.practicum.shareit.request;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

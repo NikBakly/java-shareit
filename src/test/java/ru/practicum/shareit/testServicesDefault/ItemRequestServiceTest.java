@@ -12,10 +12,10 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemDto;
 import ru.practicum.shareit.item.ItemRepository;
-import ru.practicum.shareit.requests.ItemRequest;
-import ru.practicum.shareit.requests.ItemRequestDto;
-import ru.practicum.shareit.requests.ItemRequestRepository;
-import ru.practicum.shareit.requests.ItemRequestServiceImpl;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestDto;
+import ru.practicum.shareit.request.ItemRequestRepository;
+import ru.practicum.shareit.request.ItemRequestServiceImpl;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
