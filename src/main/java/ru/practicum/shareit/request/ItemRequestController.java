@@ -7,7 +7,7 @@ import ru.practicum.shareit.HeaderKey;
 import java.util.List;
 
 /**
- * Класс находиться в разработке.
+ * Класс-контроллер, который предназначен для обработки запросов и возвращение результата
  */
 @RestController
 @RequiredArgsConstructor
