@@ -12,6 +12,7 @@ public class ItemDto {
     private Long id;
     private String name;
     private String description;
-    private Boolean available; // статус о том, доступна или нет вещь для аренды
+    private Boolean available; // статус, определяющий доступность вещи для аренды
+    private Long requestId;
 }
 

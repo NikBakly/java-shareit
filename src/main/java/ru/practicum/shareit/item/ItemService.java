@@ -16,13 +16,13 @@ public interface ItemService {
     ItemFoundDto findByUserIdAndItemId(Long userId, Long itemId);
 
     // метод для поиска предметов по id пользователя
-    List<ItemFoundDto> findAllItemsByUserId(Long userId);
+    List<ItemFoundDto> findAllItemsByUserId(Long userId, Integer from, Integer size);
 
     // метод для создания отзыва к предмету
     CommentDto addComment(Long userId, Long itemId, Comment comment);
 
     // метод для поиска предмета по тексту
-    List<ItemDto> findItemByText(Long userId, String text);
+    List<ItemDto> findItemByText(Long userId, String text, Integer from, Integer size);
 
 
 }

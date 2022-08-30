@@ -37,13 +37,17 @@ public class BookingController {
 
     @GetMapping()
     public List<BookingDto> findAllForUser(@RequestHeader(HeaderKey.USER_KEY) Long userId,
-                                           @RequestParam(value = "state", required = false) State state) {
-        return bookingService.findAllForUser(userId, state);
+                                           @RequestParam(value = "state", required = false) State state,
+                                           @RequestParam(name = "from", required = false) Integer from,
+                                           @RequestParam(name = "size", required = false) Integer size) {
+        return bookingService.findAllForUser(userId, state, from, size);
     }
 
     @GetMapping("/owner")
     public List<BookingDto> findAllForOwner(@RequestHeader(HeaderKey.USER_KEY) Long userId,
-                                            @RequestParam(value = "state", required = false) State state) {
-        return bookingService.findAllForOwner(userId, state);
+                                            @RequestParam(value = "state", required = false) State state,
+                                            @RequestParam(name = "from", required = false) Integer from,
+                                            @RequestParam(name = "size", required = false) Integer size) {
+        return bookingService.findAllForOwner(userId, state, from, size);
     }
 }

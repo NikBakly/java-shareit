@@ -1,7 +1,9 @@
 package ru.practicum.shareit.item;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -24,13 +26,13 @@ import java.util.List;
  * Класс-сервис, который предназначен для реализации основной бизнес-логики.
  */
 @Service
-@RequiredArgsConstructor
+@Setter(onMethod_ = @Autowired)
 @Slf4j
 public class ItemServiceImpl implements ItemService {
-    private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
-    private final BookingRepository bookingRepository;
-    private final CommentRepository commentRepository;
+    private ItemRepository itemRepository;
+    private UserRepository userRepository;
+    private BookingRepository bookingRepository;
+    private CommentRepository commentRepository;
 
     @Transactional
     @Override
@@ -38,9 +40,9 @@ public class ItemServiceImpl implements ItemService {
         validateWhenSaveItem(itemDto, userId);
         Item item = ItemMapper.toItem(itemDto);
         item.setOwnerId(userId);
-        itemRepository.save(item);
-        log.info("Вещь id = {} успешно сохранена у пользователя id = {}", item.getId(), userId);
-        return ItemMapper.toItemDto(item);
+        Item answerItem = itemRepository.save(item);
+        log.info("Вещь id = {} успешно сохранена у пользователя id = {}", answerItem.getId(), userId);
+        return ItemMapper.toItemDto(answerItem);
     }
 
     @Transactional
@@ -54,9 +56,9 @@ public class ItemServiceImpl implements ItemService {
             item.setDescription(itemDto.getDescription());
         if (itemDto.getAvailable() != null)
             item.setAvailable(itemDto.getAvailable());
-        itemRepository.save(item);
+        Item answerItem = itemRepository.save(item);
         log.info("Вещь id = {} успешно обновлена у пользователя id = {}", itemId, userId);
-        return ItemMapper.toItemDto(item);
+        return ItemMapper.toItemDto(answerItem);
     }
 
     @Transactional(readOnly = true)
@@ -85,15 +87,24 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemFoundDto> findAllItemsByUserId(Long userId) {
+    public List<ItemFoundDto> findAllItemsByUserId(Long userId, Integer from, Integer size) {
         checkUserById(userId);
-        log.info("Все вещи успешно найдены у пользователя id = {}", userId);
-        List<Item> items = itemRepository.findAllByOwnerId(userId);
-
+        List<Item> items;
+        if (from == null || size == null) {
+            log.info("Один из параметров не определен, возвращаются все запросы");
+            items = itemRepository.findAllByOwnerId(userId);
+        } else {
+            checkValueFromAndSize(from, size);
+            //если пагинация выходит за список, то изменим ее размер
+            int sizeItems = itemRepository.findAllByOwnerId(userId).size();
+            if (sizeItems < from + size && sizeItems > 0) {
+                size = sizeItems - from;
+            }
+            items = itemRepository.findAllByOwnerId(userId, PageRequest.of(from, size)).getContent();
+        }
         List<ItemFoundDto> itemsDto = new ArrayList<>();
-
         items.forEach(item -> itemsDto.add(getItemFoundDto(item, userId)));
-
+        log.info("Все вещи успешно найдены у пользователя id = {} с учетом пагинации", userId);
         return itemsDto;
     }
 
@@ -103,18 +114,32 @@ public class ItemServiceImpl implements ItemService {
         validateWhenAddComment(userId, itemId, comment);
         comment.setItemId(itemId);
         comment.setUserId(userId);
-        commentRepository.save(comment);
-        return CommentMapper.toCommentDto(comment, userRepository.findById(userId).get().getName());
+        Comment answerComment = commentRepository.save(comment);
+        log.info("Комментарий id = {} успешно добавлен к предмету id = {}", answerComment.getId(), itemId);
+        return CommentMapper.toCommentDto(answerComment, userRepository.findById(userId).get().getName());
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemDto> findItemByText(Long userId, String text) {
+    public List<ItemDto> findItemByText(Long userId, String text, Integer from, Integer size) {
         checkUserById(userId);
         if (text.isBlank())
             return new ArrayList<>();
-        log.info("Все вещи успешно найдены по text = {} для пользователя id = {}", text, userId);
-        return ItemMapper.toItemsDto(itemRepository.findItemsByText(text));
+        List<Item> items;
+        if (from == null || size == null) {
+            log.info("Один из параметров не определен, возвращаются все запросы");
+            items = itemRepository.findItemsByText(text);
+        } else {
+            checkValueFromAndSize(from, size);
+            //если пагинация выходит за список, то изменим ее размер
+            int sizeItems = itemRepository.findItemsByText(text).size();
+            if (sizeItems < from + size && sizeItems > 0) {
+                size = sizeItems - from;
+            }
+            items = itemRepository.findItemsByText(text, PageRequest.of(from, size)).getContent();
+        }
+        log.info("Все вещи успешно найдены по text = '{}' для пользователя id = {}", text, userId);
+        return ItemMapper.toItemsDto(items);
     }
 
     // Метод для обработки и возврата инициализированного класса ItemFoundDto
@@ -225,11 +250,11 @@ public class ItemServiceImpl implements ItemService {
     // Метод для проверок при обновлении предмета
     private void validateWhenUpdateItem(Long userId, Long itemId) {
         checkUserById(userId);
-        if (itemRepository.findItemsByOwnerId(userId) == null) {
+        if (itemRepository.findAllByOwnerId(userId) == null) {
             log.warn("У пользователя id = {} нету вещей для аренды", userId);
             throw new NotFoundException("У пользователя id = " + userId + " нету вещей для аренды");
         }
-        if (itemRepository.findItemsByOwnerId(userId).stream().noneMatch(item -> item.getId().equals(itemId))) {
+        if (itemRepository.findAllByOwnerId(userId).stream().noneMatch(item -> item.getId().equals(itemId))) {
             log.warn("У пользователя id = {} нету прав на вещь id = {}", userId, itemId);
             throw new ForbiddenException("У пользователя id = " + userId + " нету прав на вещь id = " + itemId);
         }
@@ -247,6 +272,18 @@ public class ItemServiceImpl implements ItemService {
         if (itemRepository.findById(itemId).isEmpty()) {
             log.warn("Вещь id = {} не найдена", itemId);
             throw new NotFoundException("Вещь id = " + itemId + " не найдена");
+        }
+    }
+
+    // Метод для проверки параметров для пагинации
+    private void checkValueFromAndSize(int from, int size) {
+        if (from < 0) {
+            log.warn("Страница не может начинаться с {}", from);
+            throw new BadRequestException("Страница не может начинаться с " + from);
+        }
+        if (size <= 0) {
+            log.warn("Страница не может размером с {}", size);
+            throw new BadRequestException("Страница не может размером с " + size);
         }
     }
 }

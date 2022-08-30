@@ -1,7 +1,10 @@
 package ru.practicum.shareit.booking;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.state.State;
@@ -21,21 +24,21 @@ import java.util.Optional;
  * Класс-сервис, который предназначен для реализации основной бизнес-логики.
  */
 @Service
-@RequiredArgsConstructor
+@Setter(onMethod_ = @Autowired)
 @Slf4j
 public class BookingServiceImpl implements BookingService {
-    private final BookingRepository bookingRepository;
-    private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
+    private BookingRepository bookingRepository;
+    private UserRepository userRepository;
+    private ItemRepository itemRepository;
 
     @Transactional
     @Override
     public BookingCreateDto create(BookingCreateDto bookingCreateDto, Long userId) {
         validateForCreate(bookingCreateDto, userId);
         Booking booking = BookingMapper.toBooking(bookingCreateDto, userId);
-        bookingRepository.save(booking);
-        log.info("Бронь id = {} успешно запрошена пользователем id = {}", booking.getId(), userId);
-        return BookingMapper.toBookingCreateDto(booking);
+        Booking bookingAnswer = bookingRepository.save(booking);
+        log.info("Бронь id = {} успешно запрошена пользователем id = {}", bookingAnswer.getId(), userId);
+        return BookingMapper.toBookingCreateDto(bookingAnswer);
     }
 
     @Transactional
@@ -74,96 +77,197 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<BookingDto> findAllForUser(Long userId, State state) {
+    public List<BookingDto> findAllForUser(Long userId, State state, Integer from, Integer size) {
         checkUserById(userId);
         if (state == null) {
             state = State.ALL;
         }
         List<Booking> resultBookings = new ArrayList<>();
-        List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId);
-        switch (state) {
-            case ALL:
-                resultBookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId);
-                break;
-            case WAITING:
-                resultBookings = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.WAITING);
-                break;
-            case REJECTED:
-                resultBookings = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED);
-                break;
-            case PAST:
-                for (Booking booking : bookings) {
-                    if (booking.getEnd().isBefore(LocalDateTime.now())) {
-                        resultBookings.add(booking);
+
+        if (from == null || size == null) {
+            log.info("Один из параметров не определен, возвращаются все аренды");
+            List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId);
+            switch (state) {
+                case ALL:
+                    resultBookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId);
+                    break;
+                case WAITING:
+                    resultBookings = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.WAITING);
+                    break;
+                case REJECTED:
+                    resultBookings = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED);
+                    break;
+                case PAST:
+                    for (Booking booking : bookings) {
+                        if (booking.getEnd().isBefore(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
                     }
-                }
-                break;
-            case CURRENT:
-                for (Booking booking : bookings) {
-                    if (booking.getStart().isBefore(LocalDateTime.now())
-                            && booking.getEnd().isAfter(LocalDateTime.now())) {
-                        resultBookings.add(booking);
+                    break;
+                case CURRENT:
+                    for (Booking booking : bookings) {
+                        if (booking.getStart().isBefore(LocalDateTime.now())
+                                && booking.getEnd().isAfter(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
                     }
-                }
-                break;
-            case FUTURE:
-                for (Booking booking : bookings) {
-                    if (booking.getEnd().isAfter(LocalDateTime.now())) {
-                        resultBookings.add(booking);
+                    break;
+                case FUTURE:
+                    for (Booking booking : bookings) {
+                        if (booking.getEnd().isAfter(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
                     }
-                }
-                break;
-            default:
-                log.warn("Unknown state: {}", state);
-                throw new BadRequestException("Unknown state: " + state);
+                    break;
+                default:
+                    log.warn("Unknown state: {}", state);
+                    throw new BadRequestException("Unknown state: " + state);
+            }
+        } else {
+            checkValueFromAndSize(from, size);
+            //если пагинация выходит за список, то изменим ее размер
+            int sizeBookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId).size();
+            if (sizeBookings < from + size) {
+                size = sizeBookings - from;
+            }
+            Pageable pageable = PageRequest.of(from, size);
+            List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId, pageable).getContent();
+            switch (state) {
+                case ALL:
+                    resultBookings = bookingRepository.findAllByBookerIdOrderByEndDesc(userId, pageable).getContent();
+                    break;
+                case WAITING:
+                    resultBookings = bookingRepository
+                            .findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.WAITING, pageable).getContent();
+                    break;
+                case REJECTED:
+                    resultBookings = bookingRepository
+                            .findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED, pageable).getContent();
+                    break;
+                case PAST:
+                    for (Booking booking : bookings) {
+                        if (booking.getEnd().isBefore(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
+                    }
+                    break;
+                case CURRENT:
+                    for (Booking booking : bookings) {
+                        if (booking.getStart().isBefore(LocalDateTime.now())
+                                && booking.getEnd().isAfter(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
+                    }
+                    break;
+                case FUTURE:
+                    for (Booking booking : bookings) {
+                        if (booking.getEnd().isAfter(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
+                    }
+                    break;
+                default:
+                    log.warn("Unknown state: {}", state);
+                    throw new BadRequestException("Unknown state: " + state);
+            }
         }
         return getBookingsDto(resultBookings);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<BookingDto> findAllForOwner(Long userId, State state) {
+    public List<BookingDto> findAllForOwner(Long userId, State state, Integer from, Integer size) {
         checkUserById(userId);
         if (state == null) {
             state = State.ALL;
         }
         List<Booking> resultBookings = new ArrayList<>();
-        List<Booking> bookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId);
-        switch (state) {
-            case ALL:
-                resultBookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId);
-                break;
-            case WAITING:
-                resultBookings = bookingRepository.findAllByOwnerIdAndStatusOrderByEndDesc(userId, Status.WAITING);
-                break;
-            case REJECTED:
-                resultBookings = bookingRepository.findAllByOwnerIdAndStatusOrderByEndDesc(userId, Status.REJECTED);
-                break;
-            case PAST:
-                for (Booking booking : bookings) {
-                    if (booking.getEnd().isBefore(LocalDateTime.now())) {
-                        resultBookings.add(booking);
+        if (from == null || size == null) {
+            log.info("Один из параметров не определен, возвращаются все запросы");
+            List<Booking> bookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId);
+            switch (state) {
+                case ALL:
+                    resultBookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId);
+                    break;
+                case WAITING:
+                    resultBookings = bookingRepository.findAllByOwnerIdAndStatusOrderByEndDesc(userId, Status.WAITING);
+                    break;
+                case REJECTED:
+                    resultBookings = bookingRepository.findAllByOwnerIdAndStatusOrderByEndDesc(userId, Status.REJECTED);
+                    break;
+                case PAST:
+                    for (Booking booking : bookings) {
+                        if (booking.getEnd().isBefore(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
                     }
-                }
-                break;
-            case CURRENT:
-                for (Booking booking : bookings) {
-                    if (booking.getStart().isBefore(LocalDateTime.now())
-                            && booking.getEnd().isAfter(LocalDateTime.now())) {
-                        resultBookings.add(booking);
+                    break;
+                case CURRENT:
+                    for (Booking booking : bookings) {
+                        if (booking.getStart().isBefore(LocalDateTime.now())
+                                && booking.getEnd().isAfter(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
                     }
-                }
-                break;
-            case FUTURE:
-                for (Booking booking : bookings) {
-                    if (booking.getEnd().isAfter(LocalDateTime.now())) {
-                        resultBookings.add(booking);
+                    break;
+                case FUTURE:
+                    for (Booking booking : bookings) {
+                        if (booking.getEnd().isAfter(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
                     }
-                }
-                break;
-            default:
-                log.warn("Unknown state: {}", state);
-                throw new BadRequestException("Unknown state: " + state);
+                    break;
+                default:
+                    log.warn("Unknown state: {}", state);
+                    throw new BadRequestException("Unknown state: " + state);
+            }
+        } else {
+            checkValueFromAndSize(from, size);
+            //если пагинация выходит за список, то изменим ее размер
+            int sizeBookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId).size();
+            if (sizeBookings < from + size && sizeBookings > 0) {
+                size = sizeBookings - from;
+            }
+            Pageable pageable = PageRequest.of(from, size);
+            List<Booking> bookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId, pageable).getContent();
+            switch (state) {
+                case ALL:
+                    resultBookings = bookingRepository.findAllByOwnerIdOrderByEndDesc(userId, pageable).getContent();
+                    break;
+                case WAITING:
+                    resultBookings = bookingRepository
+                            .findAllByOwnerIdAndStatusOrderByEndDesc(userId, Status.WAITING, pageable).getContent();
+                    break;
+                case REJECTED:
+                    resultBookings = bookingRepository
+                            .findAllByOwnerIdAndStatusOrderByEndDesc(userId, Status.REJECTED, pageable).getContent();
+                    break;
+                case PAST:
+                    for (Booking booking : bookings) {
+                        if (booking.getEnd().isBefore(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
+                    }
+                    break;
+                case CURRENT:
+                    for (Booking booking : bookings) {
+                        if (booking.getStart().isBefore(LocalDateTime.now())
+                                && booking.getEnd().isAfter(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
+                    }
+                    break;
+                case FUTURE:
+                    for (Booking booking : bookings) {
+                        if (booking.getEnd().isAfter(LocalDateTime.now())) {
+                            resultBookings.add(booking);
+                        }
+                    }
+                    break;
+                default:
+                    log.warn("Unknown state: {}", state);
+                    throw new BadRequestException("Unknown state: " + state);
+            }
         }
         return getBookingsDto(resultBookings);
     }
@@ -181,13 +285,11 @@ public class BookingServiceImpl implements BookingService {
     private void validateForCreate(BookingCreateDto bookingCreateDto, Long userId) {
         checkUserById(userId);
         checkItemById(bookingCreateDto.getItemId());
-
         //проверка на доступность предмета для аренды
         if (itemRepository.findById(bookingCreateDto.getItemId()).get().getAvailable().equals(Boolean.FALSE)) {
             log.warn("Этот предмет не доступен для аренды");
             throw new BadRequestException("Этот предмет не доступен для аренды");
         }
-
         //проверка на адекватность срока бронирования
         if (bookingCreateDto.getEnd().isBefore(bookingCreateDto.getStart())
                 || bookingCreateDto.getStart().isBefore(LocalDateTime.now())
@@ -273,8 +375,20 @@ public class BookingServiceImpl implements BookingService {
     private void checkBookingById(Long bookingId) {
         // проверка существование бронирование по id
         if (bookingRepository.findById(bookingId).isEmpty()) {
-            log.warn("Бронирование id = {} не найден", bookingId);
-            throw new NotFoundException("Бронирование id = " + bookingId + " не найден");
+            log.warn("Бронирование id = {} не найдено", bookingId);
+            throw new NotFoundException("Бронирование id = " + bookingId + " не найдено");
+        }
+    }
+
+    // Метод для проверки параметров для пагинации
+    private void checkValueFromAndSize(int from, int size) {
+        if (from < 0) {
+            log.warn("Страница не может начинаться с {}", from);
+            throw new BadRequestException("Страница не может начинаться с " + from);
+        }
+        if (size <= 0) {
+            log.warn("Страница не может размером с {}", size);
+            throw new BadRequestException("Страница не может размером с " + size);
         }
     }
 }

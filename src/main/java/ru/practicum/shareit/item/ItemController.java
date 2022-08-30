@@ -31,8 +31,10 @@ public class ItemController {
     }
 
     @GetMapping()
-    public List<ItemFoundDto> getAllItems(@RequestHeader(HeaderKey.USER_KEY) Long userId) {
-        return itemService.findAllItemsByUserId(userId);
+    public List<ItemFoundDto> getAllItems(@RequestHeader(HeaderKey.USER_KEY) Long userId,
+                                          @RequestParam(name = "from", required = false) Integer from,
+                                          @RequestParam(name = "size", required = false) Integer size) {
+        return itemService.findAllItemsByUserId(userId, from, size);
     }
 
     @GetMapping("/{itemId}")
@@ -43,8 +45,10 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemDto> findItemByText(@RequestHeader(HeaderKey.USER_KEY) Long userId,
-                                        @RequestParam(name = "text") String text) {
-        return itemService.findItemByText(userId, text);
+                                        @RequestParam(name = "text") String text,
+                                        @RequestParam(name = "from", required = false) Integer from,
+                                        @RequestParam(name = "size", required = false) Integer size) {
+        return itemService.findItemByText(userId, text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

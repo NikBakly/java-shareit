@@ -1,7 +1,8 @@
 package ru.practicum.shareit.user;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -15,10 +16,10 @@ import java.util.List;
  * Класс-сервис, который предназначен для реализации основной бизнес-логики.
  */
 @Service
-@RequiredArgsConstructor
+@Setter(onMethod_ = @Autowired)
 @Slf4j
 public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Transactional
     @Override
