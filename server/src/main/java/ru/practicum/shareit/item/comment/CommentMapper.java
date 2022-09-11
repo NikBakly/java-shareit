@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CommentMapper {
-    private final CommentRepository commentRepository;
 
     public static CommentDto toCommentDto(Comment comment, String authorName) {
         CommentDto commentDto = new CommentDto();
