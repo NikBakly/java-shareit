@@ -13,6 +13,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping(path = "/bookings")
@@ -49,12 +50,12 @@ public class BookingController {
                                                  @RequestParam(name = "state", defaultValue = "all") String stateParam,
                                                  @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                  @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        if (BookingState.from(stateParam).isEmpty()) {
+        Optional<BookingState> state = BookingState.from(stateParam);
+        if (state.isEmpty()) {
             return new ResponseEntity<>(Map.of("error", "Unknown state: " + stateParam), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        BookingState state = BookingState.from(stateParam).get();
         log.info("Successful getting booking for user with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
-        return bookingClient.findAllForUser(userId, state, from, size);
+        return bookingClient.findAllForUser(userId, state.get(), from, size);
     }
 
     @GetMapping("/owner")
@@ -62,12 +63,12 @@ public class BookingController {
                                                   @RequestParam(name = "state", defaultValue = "all") String stateParam,
                                                   @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                   @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        if (BookingState.from(stateParam).isEmpty()) {
+        Optional<BookingState> state = BookingState.from(stateParam);
+        if (state.isEmpty()) {
             return new ResponseEntity<>(Map.of("error", "Unknown state: " + stateParam), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        BookingState state = BookingState.from(stateParam).get();
         log.info("Successful getting booking for owner with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
-        return bookingClient.findAllForOwner(userId, state, from, size);
+        return bookingClient.findAllForOwner(userId, state.get(), from, size);
     }
 
 }
